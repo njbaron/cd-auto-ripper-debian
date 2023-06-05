@@ -1,0 +1,75 @@
+# ansible-playbook -i "`hostname`," playbook_install.yaml -K
+---
+- name: Install auto ripper
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Install apt dependencies
+      ansible.builtin.apt:
+        name:
+          - abcde
+          - lame
+          - eyed3
+          - glyrc
+          - imagemagick
+          - cdparanoia
+          - flac
+          - apache2-utils
+        state: present
+
+    - name: Ensure output dir exists
+      ansible.builtin.file:
+        path: /home/nbaron/music_rips
+        state: directory
+        mode: '0755'
+
+    - name: Ensure bin dir exists
+      ansible.builtin.file:
+        path: /var/local/cd-ripper
+        state: directory
+        mode: '0755'
+
+    - name: Ensure bin dir exists
+      ansible.builtin.file:
+        path: /var/logs/cd-ripper
+        state: directory
+        mode: '0755'
+
+    - name: Put abcde config file in place.
+      ansible.builtin.copy:
+        src: .abcde.conf
+        dest: /var/local/cd-ripper/.abcde.conf
+        mode: '0755'
+
+    - name: Copy ripper service script in place
+      ansible.builtin.copy:
+        src: cd-rip
+        dest: /bin/cd-rip
+        mode: 'u+rx'
+
+    - name: Put system.d service file in place
+      ansible.builtin.copy:
+        src: cd-ripper.service
+        dest: /etc/systemd/system/cd-ripper.service
+        mode: '0755'
+      register: copyripperservice
+
+    - name: Make sure cd ripper service is started
+      ansible.builtin.systemd:
+        state: started
+        name: cd-ripper.service
+      when: copyripperservice is changed
+
+    - name: Put cd ripper udev rule in place
+      become: true
+      ansible.builtin.copy:
+        src: 99-cd-ripper.rules
+        dest: /etc/udev/rules.d/99-cd-ripper.rules
+        mode: '0755'
+      register: copyudevrule
+
+    - name: Reload udev rules
+      ansible.builtin.command: udevadm control --reload
+      when: copyudevrule is changed

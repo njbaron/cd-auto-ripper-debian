@@ -1,0 +1,26 @@
+#!/bin/bash
+LOCKDIR=rip.lock
+LOGFILE=/var/logs/cd-ripper/status.log
+
+function cleanup {
+    if rmdir $LOCKDIR; then
+        echo "Finished $(date)" | rotatelogs -n 5 $LOGFILE 1M
+
+    else
+        echo "Failed to remove lock dir '$LOCKDIR'" | rotatelogs -n 5 $LOGFILE 1M 
+        exit 1
+    fi
+}
+
+if mkdir $LOCKDIR; then
+    trap "cleanup" EXIT
+    echo "Acquired Lock, running" | rotatelogs -n 5 $LOGFILE 1M 
+    echo "Started $(date) $$" | rotatelogs -n 5 $LOGFILE 1M 
+    abcde -c /var/local/cd-ripper/.abcde.conf
+    ABCDE_EXIT=$?
+    echo "Stopped $(date) abcde-exited=${ABCDE_EXIT} $$" | rotatelogs -n 5 $LOGFILE 1M 
+else
+    echo "Could not create lock, already running? '$LOCKDIR'" | rotatelogs -n 5 $LOGFILE 1M 
+    exit 1
+
+fi

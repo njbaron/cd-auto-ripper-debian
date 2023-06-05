@@ -1,0 +1,9 @@
+[Unit]
+Description=Auto CD ripper
+
+[Service]
+Type=oneshot
+ExecStart=/bin/cd-rip
+
+[Install]
+WantedBy=multi-user.target
