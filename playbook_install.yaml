@@ -1,6 +1,6 @@
 # ansible-playbook -i "`hostname`," playbook_install.yaml -K
 ---
-- name: Install auto ripper
+- name: Install cd auto ripper
   hosts: all
   become: true
 
@@ -25,15 +25,15 @@
         state: directory
         mode: '0755'
 
-    - name: Ensure bin dir exists
+    - name: Ensure local config dir exists
       ansible.builtin.file:
         path: /var/local/cd-ripper
         state: directory
         mode: '0755'
 
-    - name: Ensure bin dir exists
+    - name: Ensure log dir exists
       ansible.builtin.file:
-        path: /var/logs/cd-ripper
+        path: /var/log/cd-ripper
         state: directory
         mode: '0755'
 
@@ -60,7 +60,6 @@
       ansible.builtin.systemd:
         state: started
         name: cd-ripper.service
-      when: copyripperservice is changed
 
     - name: Put cd ripper udev rule in place
       become: true
