@@ -54,12 +54,11 @@
         src: cd-ripper.service
         dest: /etc/systemd/system/cd-ripper.service
         mode: '0755'
-      register: copyripperservice
 
-    - name: Make sure cd ripper service is started
-      ansible.builtin.systemd:
-        state: started
-        name: cd-ripper.service
+    # - name: Make sure cd ripper service is started
+    #   ansible.builtin.systemd:
+    #     state: started
+    #     name: cd-ripper.service
 
     - name: Put cd ripper udev rule in place
       become: true
