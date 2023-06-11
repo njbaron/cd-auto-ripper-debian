@@ -55,19 +55,16 @@
         dest: /etc/systemd/system/cd-ripper.service
         mode: '0755'
 
-    # - name: Make sure cd ripper service is started
-    #   ansible.builtin.systemd:
-    #     state: started
-    #     name: cd-ripper.service
-
     - name: Put cd ripper udev rule in place
       become: true
       ansible.builtin.copy:
         src: 99-cd-ripper.rules
         dest: /etc/udev/rules.d/99-cd-ripper.rules
         mode: '0755'
-      register: copyudevrule
+      notify: Reload udev rules
 
+  handlers:
     - name: Reload udev rules
       ansible.builtin.command: udevadm control --reload
-      when: copyudevrule is changed
+      register: udev_command_results
+      changed_when: udev_command_results.rc == 0
